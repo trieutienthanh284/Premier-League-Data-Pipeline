@@ -94,4 +94,4 @@ for index, match in enumerate(matches_to_process):
         print(f"Lỗi HTTP {response.status_code}. Dừng chương trình.")
         break
 
-print("\nHoàn thành cào dữ liệu hôm nay! Hãy quay lại vào 7h00 sáng mai để chạy tiếp.")
+print("\nHoàn thành công việc cào dữ liệu hôm nay! Hãy quay lại vào 7h00 sáng mai để chạy tiếp.")
