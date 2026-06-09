@@ -1,21 +1,24 @@
 import json
 import pandas as pd
 import yaml
+import os
 
 # 1. Đọc cấu hình Nguồn
 with open("config.yaml", "r", encoding="utf-8") as f:
     config = yaml.safe_load(f)
 
-source_config = config['source_api_football']
-raw_base_file = source_config['output_file']
-
-# Khai báo thêm file chứa thống kê chuyên sâu và chỉnh lại đường dẫn đầu ra
-raw_stats_file = "data/api_football_statistics.json"
-clean_filename = "data/api_football_clean.csv"
+# Định nghĩa lại đường dẫn theo cấu trúc folder cô lập mới của bạn
+raw_base_file = "data_epl/api_football_raw.json"
+raw_stats_file = "data_epl/api_football_statistics.json"
+clean_filename = "data_epl/api_football_clean.csv"
 
 # ==========================================
-# BƯỚC 1: XỬ LÝ DỮ LIỆU CƠ BẢN
+# BƯỚC 1: XỬ LÝ DỮ LIỆU CƠ BẢN + THÊM LEAGUE_NAME
 # ==========================================
+if not os.path.exists(raw_base_file):
+    print(f"Thất bại: Không tìm thấy file thô tại {raw_base_file}. Bạn đã di chuyển file vào data_epl chưa?")
+    exit()
+
 with open(raw_base_file, "r", encoding="utf-8") as file:
     raw_base_data = json.load(file)
 
@@ -26,10 +29,10 @@ for match in base_matches:
     fixture = match.get("fixture", {})
     teams = match.get("teams", {})
     goals = match.get("goals", {})
-    score = match.get("score", {})
 
     base_list.append({
         "match_id": fixture.get("id"),
+        "league_name": "Premier League",
         "match_date": fixture.get("date"),
         "home_team": teams.get("home", {}).get("name"),
         "away_team": teams.get("away", {}).get("name"),
@@ -43,7 +46,7 @@ df_base = pd.DataFrame(base_list)
 df_base['match_date'] = pd.to_datetime(df_base['match_date'])
 
 # ==========================================
-# BƯỚC 2: XỬ LÝ VÀ GỘP DỮ LIỆU THỐNG KÊ (NẾU CÓ)
+# BƯỚC 2: XỬ LÝ VÀ GỘP DỮ LIỆU THỐNG KÊ
 # ==========================================
 try:
     with open(raw_stats_file, "r", encoding="utf-8") as f:
@@ -52,6 +55,7 @@ except FileNotFoundError:
     raw_stats_data = []
 
 if raw_stats_data:
+    print("Đang gộp thêm mỏ vàng dữ liệu thống kê chuyên sâu...")
     flattened_stats = []
 
     for match in raw_stats_data:
@@ -76,8 +80,6 @@ if raw_stats_data:
         flattened_stats.append(row)
 
     df_stats = pd.DataFrame(flattened_stats)
-
-    # Nối 2 bảng bằng phương pháp Left Join (Bảo toàn 380 trận cơ bản dù thống kê có bị thiếu)
     df_api_complete = pd.merge(df_base, df_stats, on="match_id", how="left")
 
     # ==========================================
@@ -86,7 +88,8 @@ if raw_stats_data:
     print("Đang dọn dẹp và chuẩn hóa kiểu dữ liệu...")
     float_columns = ['home_expected_goals', 'away_expected_goals', 'home_goals_prevented', 'away_goals_prevented']
     pct_columns = ['home_ball_possession', 'away_ball_possession', 'home_passes_%', 'away_passes_%']
-    exclude_from_int = ['match_id', 'match_date', 'home_team', 'away_team', 'referee',
+    # Đã bổ sung 'league_name' vào danh sách loại trừ để Pandas không ép kiểu nhầm cột này
+    exclude_from_int = ['match_id', 'league_name', 'match_date', 'home_team', 'away_team', 'referee',
                         'data_source'] + float_columns + pct_columns
 
     int_columns = [col for col in df_api_complete.columns if col not in exclude_from_int]
@@ -105,9 +108,10 @@ if raw_stats_data:
 
     final_df = df_api_complete
 else:
-    print("⚠Chưa tìm thấy file thống kê, chỉ xuất dữ liệu cơ bản.")
+    print("Chưa tìm thấy file thống kê nâng cao, chỉ xuất dữ liệu cơ bản.")
     final_df = df_base
 
-# 4. Xuất xưởng
+# 4. Xuất xưởng vào folder mới
 final_df.to_csv(clean_filename, index=False, encoding="utf-8-sig")
-print(f"Đã xử lý xong siêu bảng API-Football. Lưu an toàn tại: {clean_filename}")
+print(f"Đã xử lý xong siêu bảng API-Football (Đã có cột league_name).")
+print(f"Lưu tại: {clean_filename}")
