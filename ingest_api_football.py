@@ -30,6 +30,10 @@ response = requests.get(url, headers=headers, params=querystring)
 
 if response.status_code == 200:
     raw_data = response.json()
+
+    # BỔ SUNG QUAN TRỌNG: Tự động kiểm tra và tạo thư mục (ví dụ: data_laliga) nếu chưa tồn tại
+    os.makedirs(os.path.dirname(raw_filename), exist_ok=True)
+
     with open(raw_filename, "w", encoding="utf-8") as file:
         json.dump(raw_data, file, ensure_ascii=False, indent=4)
     print(f"Hoàn tất Nguồn 2! Đã lưu kho dữ liệu siêu chi tiết vào file: {raw_filename}")
