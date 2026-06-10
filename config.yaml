@@ -1,18 +1,18 @@
 # Cấu hình cho Nguồn 1: football-data_epl.org
 source_football_data_org:
   base_url: "http://api.football-data.org/v4/competitions"
-  league_code: "PL"
+  league_code: "PD"
   season: 2024
   endpoint: "matches"
-  output_file: "data_epl/football_data_raw.json"
+  output_file: "data_laliga/football_data_raw.json"
 
 # Cấu hình cho Nguồn 2: API-Football (Nguồn này chi tiết hơn)
 source_api_football:
   base_url: "https://v3.football.api-sports.io"
-  league_id: 39
+  league_id: 140
   season: 2024
   endpoint: "fixtures"
-  output_file: "data_epl/api_football_raw.json"
+  output_file: "data_laliga/api_football_raw.json"
 
 # Cấu hình database
 database:
