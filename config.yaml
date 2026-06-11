@@ -13,6 +13,7 @@ source_api_football:
   season: 2024
   endpoint: "fixtures"
   output_file: "data_laliga/api_football_raw.json"
+  stats_output_file: "data_laliga/api_football_statistics.json"
 
 # Cấu hình database
 database:
